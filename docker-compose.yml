@@ -14,7 +14,7 @@ services:
     networks:
       - app-network
   mlflow:
-    build: .
+    build: ./mlflow
     restart: unless-stopped
     depends_on: [postgres]
     environment:
