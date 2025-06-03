@@ -5,6 +5,7 @@ import io
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import os
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
 
