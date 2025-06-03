@@ -9,6 +9,7 @@ import mlflow
 import mlflow.pyfunc
 from ultralytics import YOLO
 import torch
+import traceback
 
 app = FastAPI()
 
@@ -41,13 +42,18 @@ mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
 async def detect_objects(file: UploadFile = File(...)):
     try:
         # Vérifier le type de fichier
-        if not file.content_type.startswith('image/'):
-            raise HTTPException(status_code=400, detail="File must be an image")
+       #  if not file.content_type.startswith('image/'):
+         #    raise HTTPException(status_code=400, detail="File must be an image")
         
+        if file is not None:
+            # Lire l'image
+            file_bytes = np.asarray(bytearray(file.read()), dtype=np.uint8)
+            img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
         # Lire le fichier image
-        contents = await file.read()
-        nparr = np.frombuffer(contents, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        #contents = await file.read()
+        #nparr = np.frombuffer(contents, np.uint8)
+        #img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
         if img is None:
             raise HTTPException(status_code=400, detail="Could not decode image")
@@ -123,6 +129,7 @@ async def detect_objects(file: UploadFile = File(...)):
         
     except Exception as e:
         print(f"Detection error: {e}")
+        st.exception(e)
         raise HTTPException(status_code=500, detail=f"Error during detection: {str(e)}")
 
 @app.get("/results/")
