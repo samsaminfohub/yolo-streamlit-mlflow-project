@@ -13,7 +13,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
-
   mlflow:
     build: .
     restart: unless-stopped
@@ -31,7 +30,6 @@ services:
       - ./data:/app/data
     networks:
       - app-network
-
   backend:
     build: ./backend
     environment:
@@ -49,7 +47,6 @@ services:
       - app-network
     volumes:
       - ./backend/yolov5:/app/yolov5
-
   frontend:
     build: ./frontend
     environment:
@@ -60,7 +57,6 @@ services:
       - backend
     networks:
       - app-network
-      
   pgadmin:
     image: dpage/pgadmin4
     restart: unless-stopped
@@ -71,7 +67,6 @@ services:
     networks:
       - app-network
     volumes: [pgadmin_data:/var/lib/pgadmin]
-    
   portainer:
     image: portainer/portainer-ce
     restart: unless-stopped
