@@ -13,4 +13,3 @@ ultralytics==8.0.220
 opencv-python==4.8.1.78
 
 
-
