@@ -15,27 +15,29 @@ services:
       - app-network
 
   mlflow:
-    build: ./mlflow
+    build: .
+    restart: unless-stopped
+    depends_on: [postgres]
     environment:
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-      AWS_ACCESS_KEY_ID: ${MLFLOW_AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${MLFLOW_AWS_SECRET_ACCESS_KEY}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow_db
+      --default-artifact-root /app/mlruns
+      --host 0.0.0.0
+    ports: ["5000:5000"]
+    volumes:
+      - ./mlruns:/app/mlruns
+      - ./data:/app/data
     networks:
       - app-network
 
   backend:
     build: ./backend
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: yolo_db
       POSTGRES_HOST: postgres
       MLFLOW_TRACKING_URI: http://mlflow:5000
     ports:
@@ -58,10 +60,34 @@ services:
       - backend
     networks:
       - app-network
-
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports: ["8080:80"]
+    networks:
+      - app-network
+    volumes: [pgadmin_data:/var/lib/pgadmin]
+    
+  portainer:
+    image: portainer/portainer-ce
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock
+    ports: ["9000:9000"]
+    networks:
+      - app-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+      
 networks:
   app-network:
     driver: bridge
 
 volumes:
   postgres_data:
+  pgadmin_data:
+  portainer_data:
